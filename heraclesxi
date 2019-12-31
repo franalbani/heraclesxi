@@ -34,7 +34,7 @@ except ImportError:
     logger.info('using picamera')
     def capture(to_path):
         camera.annotate_background = Color('black')
-        camera.annotate_text = str(to_path)
+        camera.annotate_text = to_path.stem
         camera.capture(str(to_path))
         logger.info('capture success: %s' % to_path)
 
@@ -81,11 +81,11 @@ while True:
     if is_capture_timeframe(now):
 
         if not destdir:
-            destdir = Path('/tmp/').joinpath(now.strftime('%Y.%m.%d.%H.%M.%S.%f'))
+            destdir = Path('/tmp/').joinpath(now.strftime('%Y.%m.%d_%H.%M.%S.%f'))
             destdir.mkdir()
             logger.info('destdir created: %r' % destdir)
     
-        image_path = destdir.joinpath('%s.png' % now.strftime('%Y.%m.%d.%H.%M.%S.%f'))
+        image_path = destdir.joinpath('%s.png' % now.strftime('%Y.%m.%d_%H.%M.%S.%f'))
         capture(image_path)
 
     elif destdir:
