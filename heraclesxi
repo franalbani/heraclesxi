@@ -3,6 +3,7 @@ from skyfield.api import load, Topos, utc
 from skyfield import almanac
 from datetime import datetime, timedelta
 from argparse import ArgumentParser
+from fractions import Fraction
 import time
 import os
 from pathlib import Path
@@ -25,7 +26,7 @@ ap.add_argument('--minutes_after', type=int, default=18*4, help='minutes after t
 ap.add_argument('--seconds_between', type=int, default=60, help='seconds between captures')
 ap.add_argument('--fps', type=int, default=30, help='frames per second')
 args = ap.parse_args()
-logger.info(args)
+logger.info(args.__dict__)
 
 try:
     import cv2
@@ -42,11 +43,19 @@ try:
 
 except ImportError:
     from picamera import PiCamera, Color
-    camera = PiCamera()
     logger.info('using picamera')
+
+    camera = PiCamera(resolution=(1280, 720), framerate=Fraction(2, 1))
+    camera.iso = 800
+    camera.shutter_speed = 500000 # camera.exposure_speed
+    logger.info(f'{camera.resolution}')
+    logger.info(f'{camera.framerate}')
+    logger.info(f'{camera.shutter_speed}')
+
+    time.sleep(2)
     def capture(to_path):
         camera.annotate_background = Color('black')
-        camera.annotate_text = to_path.stem
+        camera.annotate_text = '%s\nss: %d\niso: %d' % (to_path.stem, camera.shutter_speed, camera.iso)
         camera.capture(str(to_path))
         logger.info('capture success: %s' % to_path.stem)
 
