@@ -2,11 +2,14 @@
 from skyfield.api import load, Topos, utc
 from skyfield import almanac
 from datetime import datetime, timedelta
+from argparse import ArgumentParser
 import time
 import os
 from pathlib import Path
 # from tempfile import TemporaryDirectory
 import logging
+
+
 logger = logging.getLogger('HeraclesXI')
 logger.setLevel(logging.INFO)
 ch = logging.StreamHandler()
@@ -14,6 +17,14 @@ stream_formatter = logging.Formatter('%(asctime)s - %(name)s [%(lineno)3d] - %(l
 ch.setFormatter(stream_formatter)
 logger.addHandler(ch)
 logger.info('started')
+
+ap = ArgumentParser()
+ap.add_argument('--minutes_before', type=int, default=4*60, help='minutes before sunset')
+ap.add_argument('--minutes_after', type=int, default=18*4, help='minutes after sunset')
+ap.add_argument('--seconds_between', type=int, default=60, help='seconds between captures')
+ap.add_argument('--fps', type=int, default=30, help='frames per second')
+args = ap.parse_args()
+logger.info(args)
 
 try:
     import cv2
@@ -44,26 +55,25 @@ TOPOS = {
         'almagro': Topos('34.606 S', '58.419 W'),
         }
 
-BEFORE = timedelta(minutes=2) # 4*60) # un poco más de 48 grados (VFOV camera)
-AFTER = timedelta(minutes=2) # 18*4) # 18 degrees
-TIME_BETWEEN_CAPTURES_S = 1 # 60
-FPS = 10
 
 ts = load.timescale()
 eph = load('de421.bsp')
 
 is_sun_up = almanac.sunrise_sunset(eph, TOPOS['pergamino'])
 
+BEFORE = timedelta(minutes=args.minutes_before)
+AFTER = timedelta(minutes=args.minutes_after)
+
 def is_capture_timeframe(t):
     return is_sun_up(ts.utc((t - AFTER))) and not is_sun_up(ts.utc((t + BEFORE)))
 
 
-
 FFMPEG_CMD = 'ffmpeg -nostdin -framerate {fps} -pattern_type glob -i \'{input_name_format}\' -c:v libx264 -r 20 -pix_fmt yuv420p {output_path}'
+
 def make_timelapse(destdir):
     logger.info('making timelapse')
     cmd = FFMPEG_CMD.format(
-                            fps=FPS,
+                            fps=args.fps,
                             input_name_format=str(destdir.joinpath('*.png')),
                             output_path=str(destdir.joinpath('timelapse.mp4'))
                            )
@@ -93,4 +103,4 @@ while True:
         destdir = None
 
     logger.info('sleeping')
-    time.sleep(TIME_BETWEEN_CAPTURES_S)
+    time.sleep(args.seconds_between)
