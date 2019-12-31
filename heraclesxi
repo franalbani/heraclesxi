@@ -46,9 +46,10 @@ except ImportError:
     from picamera import PiCamera, Color
     logger.info('using picamera')
 
-    camera = PiCamera(resolution=(1280, 720), framerate=Fraction(2, 1))
-    camera.iso = 800
-    camera.shutter_speed = 500000 # camera.exposure_speed
+    camera = PiCamera(resolution=(1280, 720))
+    #   camera = PiCamera(resolution=(1280, 720), framerate=Fraction(2, 1))
+    #   camera.iso = 100
+    #   camera.shutter_speed = 500000 # camera.exposure_speed
     logger.info(f'{camera.resolution}')
     logger.info(f'{camera.framerate}')
     logger.info(f'{camera.shutter_speed}')
