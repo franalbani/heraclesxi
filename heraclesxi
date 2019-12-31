@@ -23,9 +23,9 @@ try:
         leido, frame = cap.read()
         if leido:
             cv2.imwrite(str(to_path), frame)
-            logger.info('capture success: %s' % to_path)
+            logger.info('capture success: %s' % to_path.stem)
         else:
-            logger.error('capture failed: %s' % to_path)
+            logger.error('capture failed: %s' % to_path.stem)
         cap.release()
 
 except ImportError:
@@ -36,7 +36,7 @@ except ImportError:
         camera.annotate_background = Color('black')
         camera.annotate_text = to_path.stem
         camera.capture(str(to_path))
-        logger.info('capture success: %s' % to_path)
+        logger.info('capture success: %s' % to_path.stem)
 
 
 TOPOS = {
