@@ -7,8 +7,16 @@ import os
 from pathlib import Path
 # from tempfile import TemporaryDirectory
 import logging
+logger = logging.getLogger('HeraclesXI')
+logger.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+stream_formatter = logging.Formatter('%(asctime)s - %(name)s [%(lineno)3d] - %(levelname)s: %(message)s')
+ch.setFormatter(stream_formatter)
+logger.addHandler(ch)
+
 try:
     import cv2
+    logger.info('using opencv')
     def capture(to_path):
         cap = cv2.VideoCapture(0)
         leido, frame = cap.read()
@@ -22,17 +30,10 @@ try:
 except ImportError:
     from picamera import PiCamera
     camera = PiCamera()
+    logger.info('using picamera')
     def capture(to_path):
         camera.capture(str(to_path))
         logger.info('capture success: %s' % to_path)
-
-
-logger = logging.getLogger('HeraclesXI')
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-stream_formatter = logging.Formatter('%(asctime)s - %(name)s [%(lineno)3d] - %(levelname)s: %(message)s')
-ch.setFormatter(stream_formatter)
-logger.addHandler(ch)
 
 
 TOPOS = {
@@ -77,11 +78,11 @@ while True:
     if is_capture_timeframe(now):
 
         if not destdir:
-            destdir = Path('/tmp/').joinpath(now.strftime('%Y.%m.%d.%H.%M.%S'))
+            destdir = Path('/tmp/').joinpath(now.strftime('%Y.%m.%d.%H.%M.%S.%f'))
             destdir.mkdir()
             logger.info('destdir created: %r' % destdir)
     
-        image_path = destdir.joinpath('%s.png' % now.strftime('%Y.%m.%d.%H.%M.%S'))
+        image_path = destdir.joinpath('%s.png' % now.strftime('%Y.%m.%d.%H.%M.%S.%f'))
         capture(image_path)
 
     elif destdir:
