@@ -19,8 +19,9 @@ logger.addHandler(ch)
 logger.info('started')
 
 ap = ArgumentParser()
-ap.add_argument('--minutes_before', type=int, default=4*60, help='minutes before sunset')
-ap.add_argument('--minutes_after', type=int, default=18*4, help='minutes after sunset')
+ap.add_argument('--target', choices=['sunrise', 'sunset'], default='sunset')
+ap.add_argument('--minutes_before', type=int, default=4*60, help='minutes before target')
+ap.add_argument('--minutes_after', type=int, default=18*4, help='minutes after target')
 ap.add_argument('--seconds_between', type=int, default=60, help='seconds between captures')
 ap.add_argument('--fps', type=int, default=30, help='frames per second')
 args = ap.parse_args()
@@ -65,7 +66,11 @@ BEFORE = timedelta(minutes=args.minutes_before)
 AFTER = timedelta(minutes=args.minutes_after)
 
 def is_capture_timeframe(t):
-    return is_sun_up(ts.utc((t - AFTER))) and not is_sun_up(ts.utc((t + BEFORE)))
+    if args.target == 'sunset':
+        return is_sun_up(ts.utc((t - AFTER))) and not is_sun_up(ts.utc((t + BEFORE)))
+    elif args.target == 'sunrise':
+        return is_sun_up(ts.utc((t + BEFORE))) and not is_sun_up(ts.utc((t - AFTER)))
+
 
 
 FFMPEG_CMD = 'ffmpeg -nostdin -framerate {fps} -pattern_type glob -i \'{input_name_format}\' -c:v libx264 -r 20 -pix_fmt yuv420p {output_path}'
