@@ -13,6 +13,7 @@ ch = logging.StreamHandler()
 stream_formatter = logging.Formatter('%(asctime)s - %(name)s [%(lineno)3d] - %(levelname)s: %(message)s')
 ch.setFormatter(stream_formatter)
 logger.addHandler(ch)
+logger.info('started')
 
 try:
     import cv2
@@ -28,10 +29,12 @@ try:
         cap.release()
 
 except ImportError:
-    from picamera import PiCamera
+    from picamera import PiCamera, Color
     camera = PiCamera()
     logger.info('using picamera')
     def capture(to_path):
+        camera.annotate_background = Color('black')
+        camera.annotate_text = str(to_path)
         camera.capture(str(to_path))
         logger.info('capture success: %s' % to_path)
 
