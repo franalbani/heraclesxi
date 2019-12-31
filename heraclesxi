@@ -21,7 +21,7 @@ logger.info('started')
 
 ap = ArgumentParser()
 ap.add_argument('--target', choices=['sunrise', 'sunset'], default='sunset')
-ap.add_argument('--destdir', type=string, default='/tmp', help='destination directory')
+ap.add_argument('--destdir', type=str, default='/tmp', help='destination directory')
 ap.add_argument('--minutes_before', type=float, default=4*60, help='minutes before target')
 ap.add_argument('--minutes_after', type=float, default=18*4, help='minutes after target')
 ap.add_argument('--seconds_between', type=int, default=60, help='seconds between captures')
