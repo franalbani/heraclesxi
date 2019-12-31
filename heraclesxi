@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+from skyfield.api import load, Topos, utc
+from skyfield import almanac
+from datetime import datetime, timedelta
+import time
+import cv2
+import os
+from pathlib import Path
+# from tempfile import TemporaryDirectory
+import logging
+
+
+logger = logging.getLogger('HeraclesXI')
+logger.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+stream_formatter = logging.Formatter('%(asctime)s - %(name)s [%(lineno)3d] - %(levelname)s: %(message)s')
+ch.setFormatter(stream_formatter)
+logger.addHandler(ch)
+
+
+TOPOS = {
+        'pergamino': Topos('33.904 S', '60.570 W'),
+        'almagro': Topos('34.606 S', '58.419 W'),
+        }
+
+BEFORE = timedelta(minutes=2) # 4*60) # un poco más de 48 grados (VFOV camera)
+AFTER = timedelta(minutes=2) # 18*4) # 18 degrees
+TIME_BETWEEN_CAPTURES_S = 1 # 60
+FPS = 10
+
+ts = load.timescale()
+eph = load('de421.bsp')
+
+is_sun_up = almanac.sunrise_sunset(eph, TOPOS['pergamino'])
+
+def is_capture_timeframe(t):
+    return is_sun_up(ts.utc((t - AFTER))) and not is_sun_up(ts.utc((t + BEFORE)))
+
+
+def capture(to_path):
+    cap = cv2.VideoCapture(0)
+    leido, frame = cap.read()
+    if leido:
+        cv2.imwrite(str(to_path), frame)
+        logger.info('capture success: %s' % to_path)
+    else:
+        logger.error('capture failed: %s' % to_path)
+    cap.release()
+
+
+FFMPEG_CMD = 'ffmpeg -nostdin -framerate {fps} -pattern_type glob -i \'{input_name_format}\' -c:v libx264 -r 20 -pix_fmt yuv420p {output_path}'
+def make_timelapse(destdir):
+    logger.info('making timelapse')
+    cmd = FFMPEG_CMD.format(
+                            fps=FPS,
+                            input_name_format=str(destdir.joinpath('*.png')),
+                            output_path=str(destdir.joinpath('timelapse.mp4'))
+                           )
+    logger.info(cmd)
+    os.system(cmd)
+
+
+# This var also serves as a flag
+destdir = None
+
+while True:
+
+    now = datetime.now(utc)
+
+    if is_capture_timeframe(now):
+
+        if not destdir:
+            destdir = Path('/tmp/').joinpath(now.strftime('%Y.%m.%d.%H.%M.%S'))
+            destdir.mkdir()
+            logger.info('destdir created: %r' % destdir)
+    
+        image_path = destdir.joinpath('%s.png' % now.strftime('%Y.%m.%d.%H.%M.%S'))
+        capture(image_path)
+
+    elif destdir:
+        make_timelapse(destdir)
+        destdir = None
+
+    logger.info('sleeping')
+    time.sleep(TIME_BETWEEN_CAPTURES_S)
