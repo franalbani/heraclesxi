@@ -3,11 +3,28 @@ from skyfield.api import load, Topos, utc
 from skyfield import almanac
 from datetime import datetime, timedelta
 import time
-import cv2
 import os
 from pathlib import Path
 # from tempfile import TemporaryDirectory
 import logging
+try:
+    import cv2
+    def capture(to_path):
+        cap = cv2.VideoCapture(0)
+        leido, frame = cap.read()
+        if leido:
+            cv2.imwrite(str(to_path), frame)
+            logger.info('capture success: %s' % to_path)
+        else:
+            logger.error('capture failed: %s' % to_path)
+        cap.release()
+
+except ImportError:
+    from picamera import PiCamera
+    camera = PiCamera()
+    def capture(to_path):
+        camera.capture(str(to_path))
+        logger.info('capture success: %s' % to_path)
 
 
 logger = logging.getLogger('HeraclesXI')
@@ -36,16 +53,6 @@ is_sun_up = almanac.sunrise_sunset(eph, TOPOS['pergamino'])
 def is_capture_timeframe(t):
     return is_sun_up(ts.utc((t - AFTER))) and not is_sun_up(ts.utc((t + BEFORE)))
 
-
-def capture(to_path):
-    cap = cv2.VideoCapture(0)
-    leido, frame = cap.read()
-    if leido:
-        cv2.imwrite(str(to_path), frame)
-        logger.info('capture success: %s' % to_path)
-    else:
-        logger.error('capture failed: %s' % to_path)
-    cap.release()
 
 
 FFMPEG_CMD = 'ffmpeg -nostdin -framerate {fps} -pattern_type glob -i \'{input_name_format}\' -c:v libx264 -r 20 -pix_fmt yuv420p {output_path}'
