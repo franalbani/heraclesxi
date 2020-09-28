@@ -43,23 +43,7 @@ try:
         cap.release()
 
 except ImportError:
-    from picamera import PiCamera, Color
-    logger.info('using picamera')
-
-    camera = PiCamera(resolution=(1280, 720))
-    #   camera = PiCamera(resolution=(1280, 720), framerate=Fraction(2, 1))
-    #   camera.iso = 100
-    #   camera.shutter_speed = 500000 # camera.exposure_speed
-    logger.info(f'{camera.resolution}')
-    logger.info(f'{camera.framerate}')
-    logger.info(f'{camera.shutter_speed}')
-
-    time.sleep(2)
-    def capture(to_path):
-        camera.annotate_background = Color('black')
-        camera.annotate_text = '%s\nss: %d\niso: %d' % (to_path.stem, camera.shutter_speed, camera.iso)
-        camera.capture(str(to_path))
-        logger.info('capture success: %s' % to_path.stem)
+    from picapture import capture
 
 
 TOPOS = {
@@ -86,15 +70,16 @@ def is_capture_timeframe(t):
 
 FFMPEG_CMD = 'ffmpeg -nostdin -framerate {fps} -pattern_type glob -i \'{input_name_format}\' -c:v libx264 -r 20 -pix_fmt yuv420p {output_path}'
 
-def make_timelapse(destdir):
+def make_timelapse(destdir, name):
     logger.info('making timelapse')
     cmd = FFMPEG_CMD.format(
                             fps=args.fps,
                             input_name_format=str(destdir.joinpath('*.png')),
-                            output_path=str(destdir.joinpath('timelapse.mp4'))
+                            output_path=str(destdir.joinpath(name))
                            )
     logger.info(cmd)
     os.system(cmd)
+    logger.info('timelapse done!')
 
 
 # This var also serves as a flag
@@ -115,8 +100,8 @@ while True:
         capture(image_path)
 
     elif destdir:
-        make_timelapse(destdir)
+        make_timelapse(destdir, now.strftime('%Y.%m.%d.mp4'))
         destdir = None
 
-    logger.info('sleeping')
+    logger.debug('sleeping')
     time.sleep(args.seconds_between)
