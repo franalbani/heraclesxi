@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -e
+
+# This script is meant to be run from inside scripts directory.
+
+HOSTNAME=heracles
+TIMEZONE=/usr/share/zoneinfo/America/Buenos_Aires
+
+
+RASPBIAN_ZIPPED_IMAGE=$1
+chmod -w "$RASPBIAN_ZIPPED_IMAGE"
+
+RASPBIAN_IMAGE=$(basename "$RASPBIAN_ZIPPED_IMAGE" .zip).img
+
+[[ ! -f $RASPBIAN_IMAGE ]] && { echo Previous image not found. Unziping a new one...; unzip "$RASPBIAN_ZIPPED_IMAGE"; }
+
+chmod +w "$RASPBIAN_IMAGE"
+
+LO_DEV=$(sudo losetup -f)
+sudo losetup -P "$LO_DEV" "$RASPBIAN_IMAGE"
+
+SD1=$(mktemp -d /tmp/raspbian_img_sd1_XXXXX)
+sudo mount "${LO_DEV}p1" "$SD1"
+
+SD2=$(mktemp -d /tmp/raspbian_img_sd2_XXXXX)
+sudo mount "${LO_DEV}p2" "$SD2"
+
+CONFIG_FILE="$SD1/config.txt"
+
+# Enable SSH on first boot (volatile):
+sudo touch "$SD1/ssh"
+
+# Enable camera
+echo start_x=1 | sudo tee -a "$CONFIG_FILE" > /dev/null
+echo gpu_mem=128 | sudo tee -a "$CONFIG_FILE" > /dev/null
+
+sudo tee -a "$SD2/etc/wpa_supplicant/wpa_supplicant.conf" < network > /dev/null
+
+echo "$HOSTNAME" | sudo tee "$SD2/etc/hostname" > /dev/null
+sudo ln -sf "$TIMEZONE" "$SD2/etc/localtime"
+
+# FIXME: quiza es mejor usar la carpeta journald.conf.d/
+echo Storage=persistent | sudo tee -a "$SD2/etc/systemd/journald.conf" > /dev/null
+
+sudo cp on_first_boot "$SD2/root/"
+# bash_aliases ipython=ipython3
+# inputrc
+
+sudo umount "$SD1"
+sudo umount "$SD2"
+sudo rm -fr "$SD1"
+sudo rm -fr "$SD2"
+sudo losetup -d "$LO_DEV"

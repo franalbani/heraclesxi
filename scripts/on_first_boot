@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# This is meant to be run by root.
+
+update-rc.d ssh enable
+
+apt-get update
+apt-get install -y --no-install-recommends vim
+apt-get install -y --no-install-recommends git
+apt-get install -y --no-install-recommends ipython3
+apt-get install -y --no-install-recommends python3-picamera python3-systemd python3-pip
+apt-get install -y --no-install-recommends ffmpeg
+apt-get install -y --no-install-recommends faketime
+apt-get install -y --no-install-recommends tmux
+
+pip3 install skyfield
