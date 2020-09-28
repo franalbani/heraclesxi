@@ -29,6 +29,13 @@ MAC Address: B8:27:EB:89:16:67 (Raspberry Pi Foundation)
 
 * `ssh pi@heracles.local` or `ssh pi@192.168.0.28`
 * `sudo /root/on_first_boot`
+* `cd`
+* `git clone https://github.com/franalbani/heraclesxi.git`
+* `cd heraclesxi`
+* `sudo cp heraclesxi.service /etc/systemd/system/` TODO: improve this step
+* `sudo systemctl enable heraclesxi.service`
+* `sudo systemctl start heraclesxi.service`
+
 
 # test camera
 
