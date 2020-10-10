@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+docker build -t twurl .
+
+docker run -i twurl authorize \
+	 --consumer-key $(cat api_key.txt)       \
+         --consumer-secret $(cat api_secret_key.txt)
+
+docker commit $(docker ps -l -q) twurl
