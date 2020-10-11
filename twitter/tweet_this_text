@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+docker run twurl -d "status=${1}" /1.1/statuses/update.json
