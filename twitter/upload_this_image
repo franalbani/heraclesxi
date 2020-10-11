@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+docker run -v $PWD:/here \
+           -w /here \
+	   twurl -X POST \
+	         -H upload.twitter.com \
+		 -f $1 \
+		 -F media \
+		  "/1.1/media/upload.json"
