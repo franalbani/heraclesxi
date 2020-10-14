@@ -1,3 +1,12 @@
 #!/usr/bin/bash
 
-docker run twurl -d "status=${1}" /1.1/statuses/update.json
+TEXT=$1
+MEDIA_IDS=$2
+
+RESOURCE="/1.1/statuses/update.json"
+WORK_DIR=/here
+
+docker run -v $PWD:$WORK_DIR \
+           -w $WORK_DIR \
+           twurl $RESOURCE \
+                 -d "status=$TEXT&media_ids=$MEDIA_IDS"

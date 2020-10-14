@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+RESOURCE="/1.1/statuses/home_timeline.json"
+WORK_DIR=/here
+
+docker run -v $PWD:$WORK_DIR \
+           -w $WORK_DIR \
+           twurl $RESOURCE
