@@ -75,7 +75,7 @@ def make_timelapse(source_dir, dest_path):
     cmd = FFMPEG_CMD.format(
                             fps=args.fps,
                             input_name_format=str(source_dir.joinpath('*.png')),
-                            output_path=dest_path)
+                            output_path=dest_path
                            )
     logger.info(cmd)
     os.system(cmd)
