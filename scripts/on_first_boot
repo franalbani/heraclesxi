@@ -6,16 +6,21 @@ update-rc.d ssh enable
 
 sed -i '$ a\127.0.0.1 localhost heracles' /etc/hosts
 
+INSTALL="apt-get install -y --no-install-recommends"
+
 apt-get update
-apt-get install -y --no-install-recommends vim
-apt-get install -y --no-install-recommends git
-apt-get install -y --no-install-recommends ipython3
-apt-get install -y --no-install-recommends python3-picamera python3-systemd python3-pip
-apt-get install -y --no-install-recommends ffmpeg
-apt-get install -y --no-install-recommends faketime
-apt-get install -y --no-install-recommends tmux
+$INSTALL vim
+$INSTALL git
+$INSTALL ipython3
+$INSTALL python3-picamera python3-systemd python3-pip
+$INSTALL ffmpeg
+$INSTALL faketime
+$INSTALL tmux
+$INSTALL python3-tweepy
+$INSTALL python3-oauthlib python3-requests python3-requests-oauthlib
 
 pip3 install skyfield
+pip3 install inotify_simple
 
 systemctl enable avahi-daemon.service
 systemctl start avahi-daemon.service
